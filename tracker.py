@@ -2,10 +2,11 @@ import time
 import openvr
 
 
-openvr.init(openvr.VRApplication_Scene)
+# SteamVR must be running
+openvr.init(openvr.VRApplication_Background)
 poses = []
 while True:
-    poses, _ = openvr.VRCompositor().waitGetPoses(poses, None)
+    poses = openvr.VRSystem().getDeviceToAbsoluteTrackingPose(openvr.TrackingUniverseSeated, 0, poses)
     hmd_pose = poses[openvr.k_unTrackedDeviceIndex_Hmd]
 
     temp = hmd_pose.mDeviceToAbsoluteTracking[0]
