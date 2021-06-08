@@ -1,6 +1,8 @@
 import time
 import openvr
 
+from utils import ovr_utils
+
 
 # SteamVR must be running
 openvr.init(openvr.VRApplication_Background)
@@ -9,8 +11,8 @@ while True:
     poses = openvr.VRSystem().getDeviceToAbsoluteTrackingPose(openvr.TrackingUniverseSeated, 0, poses)
     hmd_pose = poses[openvr.k_unTrackedDeviceIndex_Hmd]
 
-    temp = hmd_pose.mDeviceToAbsoluteTracking[0]
-    print(f'{temp[0]:.3f}, {temp[1]:.3f}, {temp[2]:.3f}, {temp[3]:.3f}', end='\r', flush=True)
+    hmd_transform = ovr_utils.Transform(hmd_pose.mDeviceToAbsoluteTracking)
+    print('[Position] X:{0.px:.3f}, Y:{0.py:.3f}, Z:{0.pz:.3f}'.format(hmd_transform), end='\r', flush=True)
     time.sleep(0.0025)
 
 openvr.shutdown()
