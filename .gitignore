@@ -1,4 +1,5 @@
 .vscode/*
 workspace/*
+/**/__pycache__/*
 
 !workspace/pip.conf
