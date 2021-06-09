@@ -8,6 +8,9 @@ from utils import ovr_utils
 openvr.init(openvr.VRApplication_Background)
 poses = []
 while True:
+    if not openvr.isHmdPresent():
+        continue
+
     poses = openvr.VRSystem().getDeviceToAbsoluteTrackingPose(openvr.TrackingUniverseSeated, 0, poses)
     hmd_pose = poses[openvr.k_unTrackedDeviceIndex_Hmd]
 
