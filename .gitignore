@@ -1,5 +1,6 @@
 .vscode/*
 workspace/*
 /**/__pycache__/*
+calibration/*
 
 !workspace/pip.conf
