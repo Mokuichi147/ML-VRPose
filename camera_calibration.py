@@ -20,6 +20,7 @@ object_points = []
 image_points  = []
 
 capture_device = cv2.VideoCapture(CAMERA_DEVICE)
+print('press spacebar')
 while capture_device.isOpened() and len(image_points) < FRAME_COUNT:
     print(f'[progress] {len(image_points)} out of {FRAME_COUNT}', end='\r', flush=True)
     success, frame = capture_device.read()
