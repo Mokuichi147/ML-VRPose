@@ -24,11 +24,13 @@ def GetScale(matrix44):
     z = np.sqrt(matrix44[2,0]**2 + matrix44[2,1]**2 + matrix44[2,2]**2)
     return np.array([x, y, z])
 
+
 class Controller:
     def __init__(self):
         self.right = -1
-        self.left = -1
+        self.left  = -1
         ovr_system = openvr.VRSystem()
+
         for device_index in range(openvr.k_unMaxTrackedDeviceCount):
             device_class = ovr_system.getTrackedDeviceClass(device_index)
             if device_class != openvr.TrackedDeviceClass_Controller:
@@ -38,7 +40,8 @@ class Controller:
             if device_role == openvr.TrackedControllerRole_RightHand:
                 self.right = device_index
             elif device_role == openvr.TrackedControllerRole_RightHand:
-                self.left = device_index
+                self.left  = device_index
+
 
 class Transform:
     def __init__(self, pose_34):
