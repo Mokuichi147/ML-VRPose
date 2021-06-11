@@ -33,7 +33,7 @@ with mp_pose.Pose(
     while capture_device.isOpened():
         success, frame = capture_device.read()
         if not success:
-            print('Frame acquisition failed')
+            print('Frame acquisition failed', end='\r', flush=True)
             continue
 
         calibration_frame = cv2.remap(frame, map_x, map_y, cv2.INTER_LINEAR)[cam_y:cam_y+cam_h, cam_x:cam_x+cam_w]
@@ -44,7 +44,7 @@ with mp_pose.Pose(
 
         if results.pose_landmarks == None:
             cv2.imshow('human pose', image)
-            print('could not find anyone')
+            print('could not find anyone', end='\r', flush=True)
             continue
 
         x = np.array([results.pose_landmarks.landmark[i].x for i in range(LANDMARK_COUNT)])
