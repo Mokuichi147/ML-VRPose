@@ -90,6 +90,7 @@ class Controller:
 
 class Tracking:
     def __init__(self):
+        # SteamVR must be running
         openvr.init(openvr.VRApplication_Background)
         self.openvr_system = openvr.VRSystem()
         self.controller = Controller(self.openvr_system)
