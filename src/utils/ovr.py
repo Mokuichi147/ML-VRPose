@@ -84,7 +84,7 @@ class Controller:
             device_role = self.openvr_system.getControllerRoleForTrackedDeviceIndex(device_index)
             if device_role == openvr.TrackedControllerRole_RightHand:
                 self.right = device_index
-            elif device_role == openvr.TrackedControllerRole_RightHand:
+            elif device_role == openvr.TrackedControllerRole_LeftHand:
                 self.left  = device_index
 
 
@@ -98,15 +98,21 @@ class Tracking:
         self.hmd  = Transform(np.zeros([3,4]))
         self.rcon = Transform(np.zeros([3,4]))
         self.lcon = Transform(np.zeros([3,4]))
+
+    def __del__(self):
+        openvr.shutdown()
     
     def Update(self):
         self.poses = self.openvr_system.getDeviceToAbsoluteTrackingPose(
                                               openvr.TrackingUniverseSeated, 0, self.poses)
 
-        _hmd_pose = self.poses[self.openvr_system.k_unTrackedDeviceIndex_Hmd]
+        _hmd_pose = self.poses[openvr.k_unTrackedDeviceIndex_Hmd]
         _controller_right_pose = self.poses[self.controller.right]
         _controller_left_pose  = self.poses[self.controller.left]
 
-        self.hmd  = Transform(_hmd_pose)
-        self.rcon = Transform(_controller_right_pose)
-        self.lcon = Transform(_controller_left_pose)
+        self.hmd  = Transform(_hmd_pose.mDeviceToAbsoluteTracking)
+        self.rcon = Transform(_controller_right_pose.mDeviceToAbsoluteTracking)
+        self.lcon = Transform(_controller_left_pose.mDeviceToAbsoluteTracking)
+    
+    def IsHmd(self):
+        return openvr.isHmdPresent()
