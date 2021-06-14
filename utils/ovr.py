@@ -25,24 +25,6 @@ def GetScale(matrix44):
     return np.array([x, y, z])
 
 
-class Controller:
-    def __init__(self):
-        self.right = -1
-        self.left  = -1
-        ovr_system = openvr.VRSystem()
-
-        for device_index in range(openvr.k_unMaxTrackedDeviceCount):
-            device_class = ovr_system.getTrackedDeviceClass(device_index)
-            if device_class != openvr.TrackedDeviceClass_Controller:
-                continue
-
-            device_role = ovr_system.getControllerRoleForTrackedDeviceIndex(device_index)
-            if device_role == openvr.TrackedControllerRole_RightHand:
-                self.right = device_index
-            elif device_role == openvr.TrackedControllerRole_RightHand:
-                self.left  = device_index
-
-
 class Transform:
     def __init__(self, pose_34):
         self.matrix = np.eye(4)
@@ -84,3 +66,47 @@ class Transform:
         self.sx = self.scale[0]
         self.sy = self.scale[1]
         self.sz = self.scale[2]
+
+
+class Controller:
+    def __init__(self, openvr_system):
+        self.openvr_system = openvr_system
+        self.right = -1
+        self.left  = -1
+        self.Update()
+
+    def Update(self):
+        for device_index in range(openvr.k_unMaxTrackedDeviceCount):
+            device_class = self.openvr_system.getTrackedDeviceClass(device_index)
+            if device_class != openvr.TrackedDeviceClass_Controller:
+                continue
+
+            device_role = self.openvr_system.getControllerRoleForTrackedDeviceIndex(device_index)
+            if device_role == openvr.TrackedControllerRole_RightHand:
+                self.right = device_index
+            elif device_role == openvr.TrackedControllerRole_RightHand:
+                self.left  = device_index
+
+
+class Tracking:
+    def __init__(self):
+        openvr.init(openvr.VRApplication_Background)
+        self.openvr_system = openvr.VRSystem()
+        self.controller = Controller(self.openvr_system)
+        self.poses = []
+        
+        self.hmd  = Transform(np.zeros([3,4]))
+        self.rcon = Transform(np.zeros([3,4]))
+        self.lcon = Transform(np.zeros([3,4]))
+    
+    def Update(self):
+        self.poses = self.openvr_system.getDeviceToAbsoluteTrackingPose(
+                                              openvr.TrackingUniverseSeated, 0, self.poses)
+
+        _hmd_pose = self.poses[self.openvr_system.k_unTrackedDeviceIndex_Hmd]
+        _controller_right_pose = self.poses[self.controller.right]
+        _controller_left_pose  = self.poses[self.controller.left]
+
+        self.hmd  = Transform(_hmd_pose)
+        self.rcon = Transform(_controller_right_pose)
+        self.lcon = Transform(_controller_left_pose)
