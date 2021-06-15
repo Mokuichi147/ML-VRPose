@@ -4,11 +4,12 @@ from os import makedirs
 
 
 class Calibration:
-    def __init__(self, frame_count, box_size, row_cross, column_cross):
+    def __init__(self, frame_count, box_size, row_cross, column_cross, root_dir='calibration'):
         self.frame_count = frame_count
         self.box_size = box_size
         self.r_cross = row_cross
         self.c_cross = column_cross
+        self.root_dir = root_dir
 
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         self.object_point = np.zeros((self.r_cross * self.c_cross, 3), np.float32)
@@ -17,11 +18,19 @@ class Calibration:
         self.object_points = []
         self.image_points  = []
 
-    def IsCompleted(self):
-        return len(self.image_points) > self.frame_count
+        self.cam_mtx = None
+        self.dist_coeffs = None
 
-    def Add(self, bgr_frame):
-        if self.IsCompleted():
+    def IsActivated(self):
+        if self.cam_mtx == None or self.dist_coeffs == None:
+            return False
+        return True
+
+    def IsCaptureCompleted(self):
+        return len(self.image_points) > self.frame_count or self.IsActivated()
+
+    def AddCapture(self, bgr_frame):
+        if self.IsCaptureCompleted():
             return False
         _gray = cv2.cvtColorA(bgr_frame, cv2.COLOR_BGR2GRAY)
         _success, _corners = cv2.findChessboardCorners(_gray, (self.c_cross, self.r_cross), None)
@@ -29,9 +38,15 @@ class Calibration:
             return False
         self.object_points.append(self.object_point)
         self.image_points.append(_corners)
+        if self.IsCompleted():
+            self.Save()
         return True
 
-    def Save(self, root_dir):
+    def Load(self):
+        self.cam_mtx = np.load(f'{self.root_dir}/cam_mtx.npy')
+        self.dist_coeffs = np.load(f'{self.root_dir}/dist_coeffs.npy')
+
+    def Save(self):
         _success, _cam_mtx, _dist_coeffs, _rvecs, _tvecs = cv2.calibrateCamera(
             self.object_points,
             self.image_points,
@@ -43,9 +58,12 @@ class Calibration:
             print('Calibration failed!')
             return False
 
-        makedirs(root_dir, exist_ok=True)
-        np.save(f'{root_dir}/cam_mtx', _cam_mtx)
-        np.save(f'{root_dir}/dist_coeffs', _dist_coeffs.ravel())
+        self.cam_mtx = _cam_mtx
+        self.dist_coeffs = _dist_coeffs.ravel()
+
+        makedirs(self.root_dir, exist_ok=True)
+        np.save(f'{self.root_dir}/cam_mtx', _cam_mtx)
+        np.save(f'{self.root_dir}/dist_coeffs', _dist_coeffs.ravel())
         return True
 
 
