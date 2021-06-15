@@ -1,15 +1,16 @@
 import cv2
 import numpy as np
-from os import makedirs
+from os import makedirs, waitpid
 from os.path import isfile
 
 
 class Calibration:
-    def __init__(self, frame_count, box_size_cm, row_cross, column_cross, save_dir='calibration'):
+    def __init__(self, frame_count, box_size_cm, row_cross, column_cross, cam_size, save_dir='calibration'):
         self.frame_count = frame_count
         self.box_size = box_size_cm
         self.r_cross = row_cross
         self.c_cross = column_cross
+        self.cam_size = cam_size
         self.save_dir = save_dir
 
         self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -23,7 +24,7 @@ class Calibration:
         self.dist_coeffs = None
 
     def IsActivated(self):
-        if self.cam_mtx == None or self.dist_coeffs == None:
+        if type(self.cam_mtx) == type(None) or type(self.dist_coeffs) == type(None):
             return False
         return True
 
@@ -33,13 +34,13 @@ class Calibration:
     def AddCapture(self, bgr_frame):
         if self.IsCaptureCompleted():
             return False
-        _gray = cv2.cvtColorA(bgr_frame, cv2.COLOR_BGR2GRAY)
+        _gray = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2GRAY)
         _success, _corners = cv2.findChessboardCorners(_gray, (self.c_cross, self.r_cross), None)
         if not _success:
             return False
         self.object_points.append(self.object_point)
         self.image_points.append(_corners)
-        if self.IsCompleted():
+        if self.IsCaptureCompleted():
             self.Save()
         return True
 
@@ -56,7 +57,8 @@ class Calibration:
         _success, _cam_mtx, _dist_coeffs, _rvecs, _tvecs = cv2.calibrateCamera(
             self.object_points,
             self.image_points,
-            (self.h, self.w),
+            self.cam_size,
+            None,
             None,
             criteria=self.criteria)
         
@@ -78,11 +80,13 @@ class WebCam:
         self.camera_device = camera_device
         self.capture = cv2.VideoCapture(self.camera_device)
         
+        self.success, self.frame = self.capture.read()
+        
         self.success = False
         self.frame = None
         
-        self.w   = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.h   = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.w = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.h = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
 
         self.is_calibration = False
@@ -95,11 +99,11 @@ class WebCam:
         self.map_y = None
 
     def __del__(self):
-        self.camera_device.release()
+        self.capture.release()
         cv2.destroyAllWindows()
 
     def IsOpened(self):
-        return self.camera_device.isOpened()
+        return self.capture.isOpened()
 
     def Read(self):
         self.success, self.frame = self.capture.read()
@@ -127,13 +131,24 @@ class WebCam:
         cv2.imshow(window_title, self.frame)
 
     def Wait(self, ms=1, key_code='q'):
+        if key_code == None:
+            return cv2.waitKey(ms) & 0xFF
         return cv2.waitKey(ms) & 0xFF == ord(key_code)
 
     def StartCalibration(self, frame_count, box_size_cm, row_cross, column_cross, save_dir='calibration'):
-        self.calibration = Calibration(frame_count, box_size_cm, row_cross, column_cross, save_dir=save_dir)
+        self.calibration = Calibration(
+            frame_count,
+            box_size_cm,
+            row_cross,
+            column_cross,
+            (self.h, self.w),
+            save_dir=save_dir)
         self.calibration.Load()
         if not self.calibration.IsActivated():
             self.CalibrationMode()
+
+        if not self.calibration.IsActivated():
+            return
 
         self.new_cam_mtx, (self.cx,self.cy,self.cw,self.ch) = cv2.getOptimalNewCameraMatrix(
             self.calibration.cam_mtx,
@@ -155,11 +170,14 @@ class WebCam:
     def CalibrationMode(self):
         print('Start calibration mode')
         print('Press the spacebar')
-        while self.IsOpened() and self.calibration.IsCaptureCompleted():
+        while self.IsOpened() and not self.calibration.IsCaptureCompleted():
             self.calibration.ShowProgress()
 
             self.Read()
-            self.Show()
+            self.Show('Camera calibration mode')
 
-            if self.Wait(key_code=' '):
+            wait_result = self.Wait(key_code=None)
+            if wait_result == ord(' '):
                 self.calibration.AddCapture(self.frame)
+            elif wait_result == ord('q'):
+                break
