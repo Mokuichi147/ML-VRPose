@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from os import makedirs, waitpid
+from os import makedirs
 from os.path import isfile
 
 
@@ -174,7 +174,7 @@ class WebCam:
             self.calibration.ShowProgress()
 
             self.Read()
-            self.Show('Camera calibration mode')
+            self.Show('calibration mode')
 
             wait_result = self.Wait(key_code=None)
             if wait_result == ord(' '):
