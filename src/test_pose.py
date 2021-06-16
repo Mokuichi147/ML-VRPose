@@ -17,8 +17,8 @@ fig = plt.figure()
 ax = Axes3D(fig)
 ax.view_init(5, -85)
 
-with WebCam(CAMERA_DEVICE) as camera, mp_pose.Pose(
-        min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
+with WebCam(CAMERA_DEVICE) as camera, \
+        mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
     # Camera Calibration
     camera.StartCalibration(10, 1.85, 7, 7, save_dir='calibration')
 
