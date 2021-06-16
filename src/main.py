@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import mediapipe as mp
 from mpl_toolkits.mplot3d import Axes3D
 from utils.camera import WebCam
-from utils.ovr import Tracking
+from utils.ovr import VRTracker
 
 
 CAMERA_DEVICE = 0
@@ -24,17 +24,15 @@ with WebCam(CAMERA_DEVICE) as camera, \
     camera.StartCalibration(10, 1.85, 7, 7, save_dir='calibration')
 
     # VR Tracker
-    tracker = Tracking()
+    tracker = VRTracker()
 
     while camera.IsOpened():
         if not camera.Read():
             print('Frame acquisition failed', end='\r', flush=True)
             continue
-        elif not tracker.IsHmd():
+        elif not tracker.Read():
             print('Failed to get VR tracker', end='\r', flush=True)
             continue
-
-        tracker.Update()
 
         camera.FlipFrame()
         camera.ConvertRGB()

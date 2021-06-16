@@ -88,7 +88,7 @@ class Controller:
                 self.left  = device_index
 
 
-class Tracking:
+class VRTracker:
     def __init__(self):
         # SteamVR must be running
         openvr.init(openvr.VRApplication_Background)
@@ -103,7 +103,9 @@ class Tracking:
     def __del__(self):
         openvr.shutdown()
     
-    def Update(self):
+    def Read(self):
+        if not self.IsHmd():
+            return False
         self.poses = self.openvr_system.getDeviceToAbsoluteTrackingPose(
                                               openvr.TrackingUniverseSeated, 0, self.poses)
 
@@ -114,6 +116,7 @@ class Tracking:
         self.hmd  = Transform(_hmd_pose.mDeviceToAbsoluteTracking)
         self.rcon = Transform(_controller_right_pose.mDeviceToAbsoluteTracking)
         self.lcon = Transform(_controller_left_pose.mDeviceToAbsoluteTracking)
+        return True
     
     def IsHmd(self):
         return openvr.isHmdPresent()
