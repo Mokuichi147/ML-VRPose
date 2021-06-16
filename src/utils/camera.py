@@ -98,7 +98,10 @@ class WebCam:
         self.map_x = None
         self.map_y = None
 
-    def __del__(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.capture.release()
         cv2.destroyAllWindows()
 
