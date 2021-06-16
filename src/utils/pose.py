@@ -8,6 +8,9 @@ class HumanPose:
         self.min_tracking_confidence = min_tracking_confidence
         self.landmark_count = landmark_count
 
+        self.landmarks = None
+        self.frame = None
+
     def __enter__(self):
         self.pose = mp_pose.Pose(
             min_detection_confidence = self.min_detection_confidence,
@@ -15,7 +18,7 @@ class HumanPose:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.pose.close()
 
     def Read(self, camera, flip=True):
         if flip:
@@ -26,10 +29,12 @@ class HumanPose:
         self.landmarks = self.pose.process(camera.frame).pose_landmarks
         camera.FrameWriteable(True)
         camera.ConvertBGR()
-
         self.frame = camera.frame
 
-        return self.landmarks != None
+        if self.landmarks == None:
+            return False
+        return True
 
     def Draw(self):
-        mp_drawing.draw_landmarks(self.frame, self.landmarks, mp_pose.POSE_CONNECTIONS)
+        if self.landmarks != None:
+            mp_drawing.draw_landmarks(self.frame, self.landmarks, mp_pose.POSE_CONNECTIONS)
