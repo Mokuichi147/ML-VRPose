@@ -135,7 +135,7 @@ class WebCam:
 
     def Wait(self, ms=1, key_code='q'):
         if key_code == None:
-            return cv2.waitKey(ms) & 0xFF
+            return chr(cv2.waitKey(ms) & 0xFF)
         return cv2.waitKey(ms) & 0xFF == ord(key_code)
 
     def StartCalibration(self, frame_count, box_size_cm, row_cross, column_cross, save_dir='calibration'):
@@ -180,7 +180,7 @@ class WebCam:
             self.Show('calibration mode')
 
             wait_result = self.Wait(key_code=None)
-            if wait_result == ord(' '):
+            if wait_result == ' ':
                 self.calibration.AddCapture(self.frame)
-            elif wait_result == ord('q'):
+            elif wait_result == 'q':
                 break
