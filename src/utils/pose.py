@@ -1,3 +1,4 @@
+import numpy as np
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import pose as mp_pose
 
@@ -11,6 +12,10 @@ class HumanPose:
         self.landmarks = None
         self.frame = None
 
+        self.head = np.zeros(3)
+        self.lhand = np.zeros(3)
+        self.rhand = np.zeros(3)
+
     def __enter__(self):
         self.pose = mp_pose.Pose(
             min_detection_confidence = self.min_detection_confidence,
@@ -19,6 +24,10 @@ class HumanPose:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.pose.close()
+
+    def GetPositionArray(self, index):
+        _position = self.landmarks.landmark[index]
+        return np.array([_position.x, _position.y, _position.z])
 
     def Read(self, camera, flip=True):
         if flip:
@@ -33,6 +42,12 @@ class HumanPose:
 
         if self.landmarks == None:
             return False
+
+        self.head  = self.GetPositionArray(mp_pose.PoseLandmark.NOSE)
+        _left  = mp_pose.PoseLandmark.LEFT_WRIST if not flip else mp_pose.PoseLandmark.RIGHT_WRIST
+        _right = mp_pose.PoseLandmark.RIGHT_WRIST if not flip else mp_pose.PoseLandmark.LEFT_WRIST
+        self.lhand = self.GetPositionArray(_left)
+        self.rhand = self.GetPositionArray(_right)
         return True
 
     def Draw(self):

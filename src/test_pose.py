@@ -36,5 +36,10 @@ with WebCam(CAMERA_DEVICE) as camera, HumanPose() as pose:
         pose.Draw()
         camera.Show('human pose')
 
+        tracking_text  = '[Head] X:{0[0]:.3f}, Y:{0[1]:.3f}, Z:{0[2]:.3f}\t'.format(pose.head)
+        tracking_text += '[L_Hand] X:{0[0]:.3f}, Y:{0[1]:.3f}, Z:{0[2]:.3f}\t'.format(pose.lhand)
+        tracking_text += '[R_Hand] X:{0[0]:.3f}, Y:{0[1]:.3f}, Z:{0[2]:.3f}'.format(pose.rhand)
+        print(tracking_text, end='\r', flush=True)
+
         if camera.Wait():
             break
