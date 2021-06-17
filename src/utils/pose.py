@@ -12,6 +12,10 @@ class HumanPose:
         self.landmarks = None
         self.frame = None
 
+        self.head_index = mp_pose.PoseLandmark.NOSE
+        self.lhand_index = mp_pose.PoseLandmark.LEFT_WRIST
+        self.rhand_index = mp_pose.PoseLandmark.RIGHT_WRIST
+
         self.head = np.zeros(3)
         self.lhand = np.zeros(3)
         self.rhand = np.zeros(3)
@@ -25,9 +29,23 @@ class HumanPose:
     def __exit__(self, exc_type, exc_value, traceback):
         self.pose.close()
 
-    def GetPositionArray(self, index):
+    def GetImagePosition(self, index):
         _position = self.landmarks.landmark[index]
-        return np.array([_position.x, _position.y, _position.z])
+        print(_position)
+        _px = round(self.frame.shape[1] * _position.x)
+        _py = round(self.frame.shape[0] * _position.y)
+        return np.array([_px, _py])
+
+    def IsVisible(self, threshold, full_body=True):
+        if full_body:
+            _check_list = [i for i in range(self.landmark_count)]
+        else:
+            _check_list = [self.head_index, self.lhand_index, self.rhand_index]
+
+        for i in _check_list:
+            if self.landmarks.landmark[i].visibility < threshold:
+                return False
+        return True
 
     def Read(self, camera, flip=True):
         if flip:
@@ -43,11 +61,11 @@ class HumanPose:
         if self.landmarks == None:
             return False
 
-        self.head  = self.GetPositionArray(mp_pose.PoseLandmark.NOSE)
-        _left  = mp_pose.PoseLandmark.LEFT_WRIST if not flip else mp_pose.PoseLandmark.RIGHT_WRIST
-        _right = mp_pose.PoseLandmark.RIGHT_WRIST if not flip else mp_pose.PoseLandmark.LEFT_WRIST
-        self.lhand = self.GetPositionArray(_left)
-        self.rhand = self.GetPositionArray(_right)
+        self.head  = self.GetImagePosition(self.head_index)
+        self.lhand_index  = mp_pose.PoseLandmark.LEFT_WRIST if not flip else mp_pose.PoseLandmark.RIGHT_WRIST
+        self.rhand_index = mp_pose.PoseLandmark.RIGHT_WRIST if not flip else mp_pose.PoseLandmark.LEFT_WRIST
+        self.lhand = self.GetImagePosition(self.lhand_index)
+        self.rhand = self.GetImagePosition(self.rhand_index)
         return True
 
     def Draw(self):
