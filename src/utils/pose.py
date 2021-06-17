@@ -31,7 +31,6 @@ class HumanPose:
 
     def GetImagePosition(self, index):
         _position = self.landmarks.landmark[index]
-        print(_position)
         _px = round(self.frame.shape[1] * _position.x)
         _py = round(self.frame.shape[0] * _position.y)
         return np.array([_px, _py])
