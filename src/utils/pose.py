@@ -1,6 +1,7 @@
 import numpy as np
 from mediapipe.python.solutions import drawing_utils as mp_drawing
 from mediapipe.python.solutions import pose as mp_pose
+from mediapipe.python.solutions.pose import PoseLandmark as mp_landmark
 
 
 class HumanPose:
@@ -12,9 +13,9 @@ class HumanPose:
         self.landmarks = None
         self.frame = None
 
-        self.head_index = mp_pose.PoseLandmark.NOSE
-        self.lhand_index = mp_pose.PoseLandmark.LEFT_WRIST
-        self.rhand_index = mp_pose.PoseLandmark.RIGHT_WRIST
+        self.head_index  = mp_landmark.NOSE
+        self.lhand_index = mp_landmark.LEFT_WRIST
+        self.rhand_index = mp_landmark.RIGHT_WRIST
 
         self.head = np.zeros(3)
         self.lhand = np.zeros(3)
@@ -63,8 +64,8 @@ class HumanPose:
             return False
 
         self.head  = self.GetImagePosition(self.head_index)
-        self.lhand_index  = mp_pose.PoseLandmark.LEFT_WRIST if not flip else mp_pose.PoseLandmark.RIGHT_WRIST
-        self.rhand_index = mp_pose.PoseLandmark.RIGHT_WRIST if not flip else mp_pose.PoseLandmark.LEFT_WRIST
+        self.lhand_index  = mp_landmark.LEFT_WRIST if not flip else mp_landmark.RIGHT_WRIST
+        self.rhand_index = mp_landmark.RIGHT_WRIST if not flip else mp_landmark.LEFT_WRIST
         self.lhand = self.GetImagePosition(self.lhand_index)
         self.rhand = self.GetImagePosition(self.rhand_index)
         return True
