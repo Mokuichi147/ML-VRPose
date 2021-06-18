@@ -35,9 +35,11 @@ class HumanPose:
         _py = round(self.frame.shape[0] * _position.y)
         return np.array([_px, _py])
 
-    def IsVisible(self, threshold, full_body=True):
+    def IsVisible(self, threshold, full_body=True, head=False):
         if full_body:
             _check_list = [i for i in range(self.landmark_count)]
+        elif not head:
+            _check_list = [self.lhand_index, self.rhand_index]
         else:
             _check_list = [self.head_index, self.lhand_index, self.rhand_index]
 
